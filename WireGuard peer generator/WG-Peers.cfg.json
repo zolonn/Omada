@@ -1,0 +1,16 @@
+{
+  "exportPath": "$env:USERPROFILE\\Downloads",
+  "controller": {
+    "Host": "controller.contonso.com",
+    "ClientID": "...............",
+    "ClientSecret": "................."
+  },
+  "tunnelAdresses": {
+   },
+  "peers": {
+    "peer1": {
+      "PrivateKey": ".............",
+      "PublicKey": "............."
+    }
+  }
+}

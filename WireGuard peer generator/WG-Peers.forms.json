@@ -1,0 +1,425 @@
+﻿{
+    "Forms":
+        [
+            {
+            "Name":"MainWindow",
+            "Controls":
+                [
+                    { "Name":"ServerName" },
+					{ "Name":"ServerNameText" },
+					{ "Name":"SiteName" },
+					{ "Name":"SiteNameCombo" },
+					{ "Name":"VPNName" },
+					{ "Name":"VPNNameCombo" },
+					{ "Name":"VPNDetailBox",
+					  "Controls":
+						[
+						{ "Name":"ServerStatus" }, { "Name":"ServerStatusText" },
+						{ "Name":"ServerIP" }, { "Name":"ServerIPText" },
+						{ "Name":"ServerPort" }, { "Name":"ServerPortText" },
+						{ "Name":"ServerMTU" }, { "Name":"ServerMTUText" },
+						{ "Name":"ServerPrivKey" }, { "Name":"ServerPrivKeyText" },
+						{ "Name":"ServerPubKey" }, { "Name":"ServerPubKeyText" }
+						]
+					},
+
+					
+					{ "Name":"PeerLabel" },
+					{ "Name":"PeerCombo" },
+
+					{ "Name":"PeerDetailBox",
+					  "Controls":
+						[
+						{ "Name":"PeerStatus" }, { "Name":"PeerStatusText" },
+						{ "Name":"PeerIP" }, { "Name":"PeerIPText" },
+						{ "Name":"PeerPubKey" }, { "Name":"PeerPubKeyText" },
+						{ "Name":"PeerPrivKey" }, { "Name":"PeerPrivKeyText" },
+						{ "Name":"PeerSubnet" }, { "Name":"PeerSubnetText" },
+						{ "Name":"PeerDNS" }, { "Name":"PeerDNSText" }
+						]
+					},
+
+
+					{ "Name":"NewPeerBox",
+					  "Controls":
+						[
+						{ "Name":"NewPeerName" }, { "Name":"NewPeerNameText" },
+						{ "Name":"NewEndPoint" }, { "Name":"NewEndPointText" },
+						{ "Name":"NewEndPointPort" }, { "Name":"NewEndPointPortText" },
+						{ "Name":"NewPeerPrivKey" }, { "Name":"NewPeerPrivKeyText" },
+						{ "Name":"NewPeerPubKey" }, { "Name":"NewPeerPubKeyText" },
+						{ "Name":"NewPeerIP" }, { "Name":"NewPeerIPText" },
+						{ "Name":"NewPeerRange" }, { "Name":"NewPeerRangeText" },
+						{ "Name":"NewPeerDNS" }, { "Name":"NewPeerDNSText" }
+
+						]
+					},
+					
+				{ "Name":"NewPeerButton" },
+				{ "Name":"SaveNewPeerButton" },
+				{ "Name":"ExportPeerButton" },
+				{ "Name":"AboutButton" }
+                ]
+            }
+        ],
+        
+    "Controls":
+        {
+            "MainWindow":
+                {
+                "Type":"System.Windows.Forms.Form",
+                "Size":[800,550],
+                "Properties":
+                    {
+                    "StartPosition":"CenterScreen",
+                    "Text":"WireGuard Peer Creator"
+                    },
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_Load",
+				        "Action":"Event_Process_LoadMainForm"
+                        }
+                    ],
+				"Debug":"false"
+                },
+            
+            "ServerName":
+                {
+                "Type":"System.Windows.Forms.Label",
+                "Pos":[10,12],
+                "Size":[130,25],
+                "Properties":
+                    {
+					"TextAlign":"MiddleRight",
+                    "Text":"Controller Hostname:"
+                    }
+                },
+            "ServerNameText":
+                {
+                "Type":"System.Windows.Forms.TextBox",
+                "Pos":[145,10],
+                "Size":[600,30],
+                "Properties":
+                    {
+                    "ReadOnly":"$true",
+                    "Text":"---"
+                    }
+                },
+
+            "SiteName":
+                {
+                "Type":"System.Windows.Forms.Label",
+                "Pos":[10,37],
+                "Size":[130,25],
+                "Properties":
+                    {
+					"TextAlign":"MiddleRight",
+                    "Text":"Site:"
+                    }
+                },
+            "SiteNameCombo":
+                {
+                "Type":"System.Windows.Forms.ComboBox",
+                "Pos":[145,37],
+                "Size":[600,20],
+				"Properties":
+                    {
+                    "Height":400,
+                    "DropDownStyle":"DropDownList",
+                    "Text":""
+                    },
+                "ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_SelectedIndexChanged",
+                        "Action":"Event_Process_ComboSite"
+                        }
+                    ]
+                },
+
+
+            "VPNName":
+                {
+                "Type":"System.Windows.Forms.Label",
+                "Pos":[10,64],
+                "Size":[130,25],
+                "Properties":
+                    {
+					"TextAlign":"MiddleRight",
+                    "Text":"WireGuard VPN:"
+                    }
+                },
+            "VPNNameCombo":
+                {
+                "Type":"System.Windows.Forms.ComboBox",
+                "Pos":[145,64],
+                "Size":[600,20],
+				"Properties":
+                    {
+                    "Height":400,
+                    "DropDownStyle":"DropDownList",
+                    "Text":""
+                    },
+                "ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_SelectedIndexChanged",
+                        "Action":"Event_Process_ComboVPN"
+                        }
+                    ]
+                },
+
+            "PeerLabel":
+                {
+                "Type":"System.Windows.Forms.Label",
+                "Pos":[10,240],
+                "Size":[130,25],
+                "Properties":
+                    {
+					"TextAlign":"MiddleRight",
+                    "Text":"Peer:"
+                    }
+                },
+
+            "PeerCombo":
+                {
+                "Type":"System.Windows.Forms.ComboBox",
+                "Pos":[145,240],
+                "Size":[600,20],
+                "Properties":
+                    {
+                    "Height":100,
+					"DropDownStyle":"DropDownList",
+                    "Text":"",
+                    },
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_SelectedIndexChanged",
+				        "Action":"Event_Process_PeersList"
+                        }
+                    ]
+                },
+
+
+
+
+
+            "VPNDetailBox":
+                {
+                "Type":"System.Windows.Forms.GroupBox",
+                "Pos":[150,91],
+                "Size":[590,130],
+                "Properties": { "Text":"Tunnel Details" },
+				"Debug":"false"
+                },
+
+            "ServerStatus":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,15], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Status:" } },
+            "ServerStatusText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,15], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "ServerIP":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,32], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Server IP:" } },
+            "ServerIPText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,32], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "ServerPort":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,49], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Server Port:" } },
+            "ServerPortText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,49], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "ServerMTU":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,66], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"MTU:" } },
+            "ServerMTUText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,66], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "ServerPrivKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,83], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Private Key:" } },
+            "ServerPrivKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,83], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "ServerPubKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,100], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Public Key:" } },
+            "ServerPubKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,100], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+
+
+
+
+            "PeerDetailBox":
+                {
+                "Type":"System.Windows.Forms.GroupBox",
+                "Pos":[150,270],
+                "Size":[590,130],
+                "Properties": { "Text":"Peer Details", "Visible":false },
+				"Debug":"false"
+                },
+
+            "PeerStatus":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,15], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Status:" } },
+            "PeerStatusText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,15], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "PeerIP":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,32], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Peer IP:" } },
+            "PeerIPText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,32], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "PeerPrivKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,49], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Private Key:" } },
+            "PeerPrivKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,49], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "PeerPubKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,66], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Public Key:" } },
+            "PeerPubKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,66], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+
+            "PeerSubnet":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,83], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Remote Subnet:" } },
+            "PeerSubnetText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,83], "Size":[480,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"---" } },
+            "PeerDNS":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,100], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"DNS:" } },
+            "PeerDNSText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,100], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"" } },
+
+
+
+
+            "NewPeerBox":
+                {
+                "Type":"System.Windows.Forms.GroupBox",
+                "Pos":[150,270],
+                "Size":[590,175],
+                "Properties": { "Text":"New Peer Details", "Visible":false },
+				"Debug":"false"
+                },
+
+            "NewPeerName":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,15], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Name:" } },
+            "NewPeerNameText":
+                { "Type":"System.Windows.Forms.TextBox", "Pos":[110,15], "Size":[470,20], "Properties": { "Text":"" } },
+
+            "NewEndPoint":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,37], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Endpoint:" } },
+            "NewEndPointText":
+                { "Type":"System.Windows.Forms.TextBox", "Pos":[110,37], "Size":[470,20], "Properties": { "Text":"" } },
+
+            "NewEndPointPort":
+                { "Type":"System.Windows.Forms.Label","Pos":[10,59], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Port:" } },
+            "NewEndPointPortText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,59], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"AAA" } },
+				
+            "NewPeerPrivKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,76], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Private Key:" } },
+            "NewPeerPrivKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,76], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"" } },
+
+            "NewPeerPubKey":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,93], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Public Key:" } },
+            "NewPeerPubKeyText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,93], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"" } },
+
+            "NewPeerIP":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,110], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Peer IP:" } },
+            "NewPeerIPText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,110], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"" } },
+
+            "NewPeerRange":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,127], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"Remote Subnet:" } },
+            "NewPeerRangeText":
+                { "Type":"System.Windows.Forms.Label", "Pos":[110,127], "Size":[470,20], "Properties": { "TextAlign":"MiddleLeft", "Text":"" } },
+
+            "NewPeerDNS":
+                { "Type":"System.Windows.Forms.Label", "Pos":[10,148], "Size":[100,20], "Properties": { "TextAlign":"MiddleRight", "Text":"DNS:" } },
+            "NewPeerDNSText":
+                { "Type":"System.Windows.Forms.TextBox", "Pos":[110,148], "Size":[470,20], "Properties": { "Text":"" } },
+
+
+
+
+            "NewPeerButton":
+                {
+                "Type":"System.Windows.Forms.Button",
+                "Pos":[150,470],
+                "Size":[80,23],
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_Click",
+				        "Action":"Event_Add_NewPeer"
+                        }
+                    ],
+                "Properties":
+                    {
+                    "DialogResult":"None",
+                    "Text":"New Peer",
+					"Enabled":false
+                    }
+                },
+
+            "SaveNewPeerButton":
+                {
+                "Type":"System.Windows.Forms.Button",
+                "Pos":[250,470],
+                "Size":[150,23],
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_Click",
+				        "Action":"Event_Save_NewPeer"
+                        }
+                    ],
+                "Properties":
+                    {
+                    "DialogResult":"None",
+                    "Text":"Create && Export Peer",
+					"Enabled":false
+                    }
+                },
+            "ExportPeerButton":
+                {
+                "Type":"System.Windows.Forms.Button",
+                "Pos":[420,470],
+                "Size":[100,23],
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_Click",
+				        "Action":"Event_Export_Peer"
+                        }
+                    ],
+                "Properties":
+                    {
+                    "DialogResult":"None",
+                    "Text":"Export Peer",
+					"Enabled":false
+                    }
+                },
+           "AboutButton":
+                {
+                "Type":"System.Windows.Forms.Button",
+                "Pos":[600,470],
+                "Size":[80,23],
+				"ActionHandlers":
+                    [
+                        {
+                        "ActionType":"Add_Click",
+				        "Action":"About_Msg"
+                        }
+                    ],
+                "Properties":
+                    {
+                    "DialogResult":"None",
+                    "Text":"About"
+                    }
+                }
+ 
+        }
+    }
+    
+    
