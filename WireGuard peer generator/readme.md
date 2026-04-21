@@ -1,6 +1,8 @@
 # WireGuard peer generator
 this is first version of WireGuard peer generator.
 
+Creator creates peers via API and saves configuration file to configured directory, which can be imported in client
+
 it is a Windows PowerShell script which uses GUI elements.
 
 ## Generator consists of following files:
