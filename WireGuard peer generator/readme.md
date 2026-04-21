@@ -25,9 +25,10 @@ please note: all files must be in the same directory!
 ## Usage
 The script creates peers for existing tunnel, please create WireGuard tunnel first in Controller, then run the  `WG-Peers.ps1`
 
-## Assumptions
+## Assumptions and limitations
 * expected Tunnel interface IP is `x.x.x.1`
 * first peer will be created with IP `x.x.x.10`
   * or when any peer exist, always add 1 to highest IP
   * note: currently no check is implemented for IP space overrun
 * if on tunnel there is peer with more than one allowed subnet, this is considered as site2site tunnel and therefore no peers can be created by generator 
+* script uses `/openapi/v1/[OmadacId]/sites/[SiteID]/vpn/wireguard-peers` API call, which is currently marked as deprecated
