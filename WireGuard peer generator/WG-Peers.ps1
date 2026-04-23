@@ -9,33 +9,16 @@
 ##############################################
 
 
-$global:sServer = "" 
-$global:sAccessToken = ""
-$global:srefreshToken = ""
-$global:sOmadacId = ""
-$global:sClientID = "" 
-$global:sClientSecret = "" 
-$global:oSites = [pscustomobject]@{}
-$global:sSiteID = ""
-$global:oVPNs = [pscustomobject]@{}
-$global:oVPN = [pscustomobject]@{}
-$global:sVPNID = ""
-$global:oPeers = [pscustomobject]@{}
-$global:sPeerID = ""
-$global:sNextIP = ""
-$global:sExportPath = ""
-$global:bSaveEndpoint = $false
-$global:Endpoint = ""
 
 
 
 function fCtrlGetID
 {
-param ( $sServer )
+#param ( $sServer )
 
     $sURL = "https://$sServer/api/info"
     $oResp = Invoke-RestMethod -Method 'GET' -Uri $sURL -SkipCertificateCheck #-Headers $aHeaders #-Body $aBody
-    if ( $oResp.errorCode -eq 0 ) { $global:sOmadacId = $oResp.result.omadacId }
+    if ( $oResp.errorCode -eq 0 ) { $script:sOmadacId = $oResp.result.omadacId }
     return $oResp
 }
 
@@ -45,13 +28,13 @@ function fCtrlLogin
 param ( $sServer, $sOmadacId, $sClientID, $sClientSecret)
 
     $aHeaders = @{'content-type' = 'application/json' }
-    #$aBody = '{"omadacId":"' + $global:sOmadacId + '","client_id":"' + $global:sClientID + '","client_secret":"' + $global:sClientSecret + '"}'
+    #$aBody = '{"omadacId":"' + $script:sOmadacId + '","client_id":"' + $script:sClientID + '","client_secret":"' + $script:sClientSecret + '"}'
     $aBody = '{"omadacId":"' + $sOmadacId + '","client_id":"' + $sClientID + '","client_secret":"' + $sClientSecret + '"}'
     $sURL = "https://" + $sServer + "/openapi/authorize/token?grant_type=client_credentials"
     $oResp = Invoke-RestMethod -Method 'POST' -Uri $sURL -Headers $aHeaders -Body $aBody -SkipCertificateCheck
 
     if ( $oResp.errorCode -eq 0 )
-        { $global:sAccessToken = $oResp.result.accessToken ;  $global:srefreshToken = $oResp.result.refreshToken}
+        { $script:sAccessToken = $oResp.result.accessToken ;  $script:srefreshToken = $oResp.result.refreshToken}
     return $oResp
 }
 
@@ -60,10 +43,10 @@ function fCtrlRefreshToken
 param ( $sServer, $sOmadacId ) #, $sClientID, $sClientSecret)
 
     $aHeaders = @{'content-type' = 'application/json' }
-    $sURL = "https://$sServer/openapi/authorize/token?client_id=$($global:sClientID)&client_secret=$($global:sClientSecret)&refresh_token=$($global:srefreshToken)&grant_type=refresh_token"
+    $sURL = "https://$sServer/openapi/authorize/token?client_id=$($script:sClientID)&client_secret=$($script:sClientSecret)&refresh_token=$($script:srefreshToken)&grant_type=refresh_token"
     $oResp = Invoke-RestMethod -Method 'POST' -Uri $sURL -Headers $aHeaders -SkipCertificateCheck #-Body $aBody
     if ( $oResp.errorCode -eq 0 )
-        { $global:sAccessToken = $oResp.result.accessToken ; $global:srefreshToken = $oResp.result.refreshToken }
+        { $script:sAccessToken = $oResp.result.accessToken ; $script:srefreshToken = $oResp.result.refreshToken }
     return $oResp
 }
 
@@ -76,7 +59,7 @@ param ( $sServer, $sOmadacId, $sAccessToken)
     $sURL = "https://$sServer/openapi/v1/$sOmadacId/sites?page=1&pageSize=10"
     $oResp = Invoke-RestMethod -Method 'GET' -Uri $sURL -SkipCertificateCheck -Headers $aHeaders -SkipHeaderValidation #-Body $aBody
     if ( $oResp.errorCode -eq 0 )
-        { $global:oSites = $oResp.result.data }
+        { $script:oSites = $oResp.result.data }
     return $oResp
 }
 
@@ -89,7 +72,7 @@ param ( $sServer, $sOmadacId, $sAccessToken, $sSiteID)
     #$sURL = "https://$sServer/openapi/v1/$sOmadacId/sites/$sSiteID/vpn?page=1&pageSize=10"
     $oResp = Invoke-RestMethod -Method 'GET' -Uri $sURL -SkipCertificateCheck -Headers $aHeaders -SkipHeaderValidation #-Body $aBody
     if ( $oResp.errorCode -eq 0 )
-        { $global:oVPNs = $oResp.result.data }
+        { $script:oVPNs = $oResp.result.data }
     return $oResp
 }
 function fCtrlListVPNTunnels
@@ -100,7 +83,7 @@ param ( $sServer, $sOmadacId, $sAccessToken, $sSiteID)
     $sURL = "https://$sServer/openapi/v2/$sOmadacId/sites/$sSiteID/vpn/site-to-site-vpns?page=1&pageSize=10"
     $oResp = Invoke-RestMethod -Method 'GET' -Uri $sURL -SkipCertificateCheck -Headers $aHeaders -SkipHeaderValidation #-Body $aBody
     if ( $oResp.errorCode -eq 0 )
-        { $global:oVPNs = $oResp.result.data }
+        { $script:oVPNs = $oResp.result.data }
     return $oResp2
 }
 
@@ -178,6 +161,15 @@ param ( $sServer, $sOmadacId, $sAccessToken, $sSiteID, $sJSON )
     return $oResp
 }
 
+function fCtrlSetNewPeer2
+{
+param ( $sServer, $sOmadacId, $sAccessToken, $sSiteID, $sVPNID, $sJSON )
+
+    $aHeaders = @{  'content-type' = 'application/json'; 'Authorization' = "AccessToken=$sAccessToken" }
+    $sURL = "https://$sServer/openapi/v2/$sOmadacId/sites/$sSiteID/vpn/site-to-site-vpns/$sVPNID"
+    $oResp = Invoke-RestMethod -Method 'PATCH' -Uri $sURL -SkipCertificateCheck -Headers $aHeaders -SkipHeaderValidation -Body $sJSON
+    return $oResp
+}
 
 function fClearTunnelDetail
 {
@@ -195,13 +187,15 @@ function fClearTunnelDetail
 function Event_Process_LoadMainForm
 {
     # populate text box with server name
-    $global:sServer = $global:oJSONcfg.controller.Host
-    $global:sClientID = $global:oJSONcfg.controller.ClientID
-    $global:sClientSecret = $global:oJSONcfg.controller.ClientSecret
-    $bRet = Set-UI_Property -Form $oMainForm -Control "ServerNameText" -Property "Text" -Value $oJSONcfg.controller.Host
+    $script:sServer = $script:oJSONcfg.controller.Host
+    $script:sClientID = $script:oJSONcfg.controller.ClientID
+    $script:sClientSecret = $script:oJSONcfg.controller.ClientSecret
+    $bRet = Set-UI_Property -Form $oMainForm -Control "ServerNameText" -Property "Text" -Value $($oJSONcfg.controller.Host)
 
     # get the controller ID
-    $oResp = fCtrlGetID $sServer
+    Write-Host "URL: $script:sServer"
+    $oResp = fCtrlGetID $script:sServer
+
     # login - when OK paint the background green
     $oResp = fCtrlLogin $sServer $sOmadacId $sClientID $sClientSecret
     if ( $oResp.errorCode -ne 0 )  { Write-Host "Login failed" } # open popup window with error message
@@ -218,7 +212,7 @@ function Event_Process_LoadMainForm
         $oResp = fCtrlListSites $sServer $sOmadacId $sAccessToken
         if ( $oResp.errorCode -ne 0 )   { Write-Host "Error refreshing $($oResp.errorCode) - $($oResp.msg)" } # !!!! popup window
         }
-    $aItems = @() ; foreach ( $oSite in $global:oSites ) { $aItems += "$($oSite.name)" }
+    $aItems = @() ; foreach ( $oSite in $script:oSites ) { $aItems += "$($oSite.name)" }
     $Ret = Invoke-UI_Method -Form $oMainForm -Control "SiteNameCombo" -Method "Items.AddRange" -Value $aItems
 }
 
@@ -234,11 +228,11 @@ function Event_Process_ComboSite
 
     # get Site ID
     $sSitename = Get-UI_Property -Form $oMainForm -Control "SiteNameCombo" -Property "SelectedItem"
-    $global:sSiteID = $($global:oSites | Where-Object {$_.name -eq $sSitename} | Select-Object -Property "siteId").siteId
+    $script:sSiteID = $($script:oSites | Where-Object {$_.name -eq $sSitename} | Select-Object -Property "siteId").siteId
 
     # load WG VPNs
     $oResp = fCtrlListVPNTunnels $sServer $sOmadacId $sAccessToken $sSiteID
-    $aItems = @() ; foreach ( $oRow in $global:oVPNs )  { $aItems += "$($oRow.name)" }
+    $aItems = @() ; foreach ( $oRow in $script:oVPNs )  { $aItems += "$($oRow.name)" }
 
     # populate WG list combo
     $Ret = Invoke-UI_Method -Form $oMainForm -Control "VPNNameCombo" -Method "Items.AddRange" -Value $aItems
@@ -259,11 +253,11 @@ function Event_Process_ComboVPN
 
     # get VPN ID
     $sVPNname = Get-UI_Property -Form $oMainForm -Control "VPNNameCombo" -Property "SelectedItem"
-    $global:sVPNID = $($global:oVPNs | Where-Object {$_.name -eq $sVPNname} | Select-Object -Property "id").id
+    $script:sVPNID = $($script:oVPNs | Where-Object {$_.name -eq $sVPNname} | Select-Object -Property "id").id
 
     # load WG VPN details and peers
-    $global:oVPN = $(fCtrlGetVPNTunnelDetail $sServer $sOmadacId $sAccessToken $sSiteID $sVPNID).result
-    $global:oPeers = $(fCtrlGetVPNTunnelDetail $sServer $sOmadacId $sAccessToken $sSiteID $sVPNID).result.peers
+    $script:oVPN = $(fCtrlGetVPNTunnelDetail $sServer $sOmadacId $sAccessToken $sSiteID $sVPNID).result
+    $script:oPeers = $(fCtrlGetVPNTunnelDetail $sServer $sOmadacId $sAccessToken $sSiteID $sVPNID).result.peers
     
     # populate VPN details
     $Ret = Set-UI_Property -Form $oMainForm -Control "ServerStatusText" -Property "Text" -Value $oVPN.status
@@ -274,7 +268,7 @@ function Event_Process_ComboVPN
     $Ret = Set-UI_Property -Form $oMainForm -Control "ServerPubKeyText" -Property "Text" -Value $oVPN.publicKey
 
     # populate WG list combo
-    $aItems = @() ; foreach ( $oRow in $global:oPeers )  { $aItems += "$($oRow.name)" }
+    $aItems = @() ; foreach ( $oRow in $script:oPeers )  { $aItems += "$($oRow.name)" }
     $Ret = Invoke-UI_Method -Form $oMainForm -Control "PeerCombo" -Method "Items.AddRange" -Value $aItems
 
     # enable New peer button
@@ -291,7 +285,7 @@ function Event_Process_PeersList
     if ( $(Get-UI_Property -Form $oMainForm -Control "PeerCombo" -Property "SelectedIndex") -eq -1) { return }
     # get Peer ID
     $sPeerName = Get-UI_Property -Form $oMainForm -Control "PeerCombo" -Property "SelectedItem"
-    $global:sPeerID = $($global:oPeers | Where-Object {$_.name -eq $sPeerName} )# | Select-Object -Property "id").siteId
+    $script:sPeerID = $($script:oPeers | Where-Object {$_.name -eq $sPeerName} )# | Select-Object -Property "id").siteId
 
     # enable peer detail box
     $bRet = Set-UI_Property -Form $oMainForm -Control "PeerDetailBox" -Property "Visible" -Value $true
@@ -306,14 +300,14 @@ function Event_Process_PeersList
     if ( $null -eq $sDNS) { $sDNS = "<not maintained by Peer Creator>" ; $bRet = Set-UI_Property -Form $oMainForm -Control "ExportPeerButton" -Property "Enabled" -Value $false }
 
     # populate VPN details
-    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerStatusText" -Property "Text" -Value $($global:sPeerID).status
-    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerIPText" -Property "Text" -Value $($global:sPeerID).remoteSubnet[0]
+    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerStatusText" -Property "Text" -Value $($script:sPeerID).status
+    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerIPText" -Property "Text" -Value $($script:sPeerID).remoteSubnet[0]
     $Ret = Set-UI_Property -Form $oMainForm -Control "PeerPrivKeyText" -Property "Text" -Value $sPrivKey
-    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerPubKeyText" -Property "Text" -Value $($global:sPeerID).serverPublicKey
+    $Ret = Set-UI_Property -Form $oMainForm -Control "PeerPubKeyText" -Property "Text" -Value $($script:sPeerID).serverPublicKey
     $Ret = Set-UI_Property -Form $oMainForm -Control "PeerSubnetText" -Property "Text" -Value "0.0.0.0/0"
     $Ret = Set-UI_Property -Form $oMainForm -Control "PeerDNSText" -Property "Text" -Value $sDNS
 
-    $aSubnets = $global:sPeerID.remoteSubnet
+    $aSubnets = $script:sPeerID.remoteSubnet
 }
 
 
@@ -334,10 +328,10 @@ function Event_Add_NewPeer
     # get Endpoint from config file
     $sSitename = Get-UI_Property -Form $oMainForm -Control "SiteNameCombo" -Property "SelectedItem"
     $sEndpoint = $oJSONcfg.tunnelAdresses.$sSitename
-    if ( $null -eq $sEndpoint ) { $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text" -Value "<Enter public FQDN of the tunnel>" ; $global:bSaveEndpoint = $true }
-    else { $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text" -Value $sEndpoint ; $global:bSaveEndpoint = $false }
+    if ( $null -eq $sEndpoint ) { $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text" -Value "<Enter public FQDN of the tunnel>" ; $script:bSaveEndpoint = $true }
+    else { $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text" -Value $sEndpoint ; $script:bSaveEndpoint = $false }
     # serviceport cannot be changed - must be the same as at VPN server
-    $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointPortText" -Property "Text" -Value $global:oVPN.servicePort
+    $bRet = Set-UI_Property -Form $oMainForm -Control "NewEndPointPortText" -Property "Text" -Value $script:oVPN.servicePort
     #get new keys for peer and populate
     $oResp = fCtrlGetVPNNewKeys $sServer $sOmadacId $sAccessToken $sSiteID
     $bRet = Set-UI_Property -Form $oMainForm -Control "NewPeerPrivKeyText" -Property "Text" -Value $oResp.result.privateKey
@@ -346,7 +340,7 @@ function Event_Add_NewPeer
     # calculate the next IP address
     # - if there is more than one remote subnet, this isn't client VPN....
 
-    if ( $($global:oPeers[0].remoteSubnet).Count -gt 1 )
+    if ( $($script:oPeers[0].remoteSubnet).Count -gt 1 )
         {
         fDisplayMessageBox "New Peer" "This VPN has more than one remote network ranges.`r`nIs probably site2site VPN.`r`n`r`nAdding new peer is not allowed."
         $bRet = Set-UI_Property -Form $oMainForm -Control "NewPeerBox" -Property "Visible" -Value $false
@@ -355,23 +349,23 @@ function Event_Add_NewPeer
     
 
     # get ranges, sort and get the latest (highest) one 
-    $aRanges = @() ; foreach ( $oRow in $global:oPeers )  { $aRanges += $($oRow.remoteSubnet[0]).ToString() }
+    $aRanges = @() ; foreach ( $oRow in $script:oPeers )  { $aRanges += $($oRow.remoteSubnet[0]).ToString() }
     if ( $aRanges.Count -eq 0 )
         { #no peers yet, get the server IP and start with 10....
-        $sIP = $global:oVPN.tunnelIp
+        $sIP = $script:oVPN.tunnelIp
         $sIP = $sIP.SubString( 0,$sIP.LastIndexOf(".")+1)
         $sIP += "10/32"
         }
     else
         { # some peers exists
-        if ( $aRanges.Count -eq 1 ) { $global:sNextIP = $aRanges[0]    }
-        else                        { $aRanges = $aRanges | Sort-Object ; $global:sNextIP = $aRanges[$aRanges.Length-1]    }
+        if ( $aRanges.Count -eq 1 ) { $script:sNextIP = $aRanges[0]    }
+        else                        { $aRanges = $aRanges | Sort-Object ; $script:sNextIP = $aRanges[$aRanges.Length-1]    }
         
         # split network, IP and mask (assuming only the 4th octet is relevant)
-        $sNet = $($global:sNextIP).SubString( 0,$($global:sNextIP).LastIndexOf(".")+1)
-        $iIPlen = $($global:sNextIP).IndexOf("/") - $($global:sNextIP).LastIndexOf(".") - 1
-        $sIP = $($global:sNextIP).SubString( $($global:sNextIP).LastIndexOf(".")+1,$iIPlen)
-        $sMask = $($global:sNextIP).SubString( $($global:sNextIP).LastIndexOf("/"))
+        $sNet = $($script:sNextIP).SubString( 0,$($script:sNextIP).LastIndexOf(".")+1)
+        $iIPlen = $($script:sNextIP).IndexOf("/") - $($script:sNextIP).LastIndexOf(".") - 1
+        $sIP = $($script:sNextIP).SubString( $($script:sNextIP).LastIndexOf(".")+1,$iIPlen)
+        $sMask = $($script:sNextIP).SubString( $($script:sNextIP).LastIndexOf("/"))
         # add 1 to IP
         $sIP = $([int]$sIP + 1).ToString()
         # construct the range back
@@ -409,12 +403,12 @@ function Event_Save_NewPeer
 
 
     # if needed add site FQDN
-    if ( $global:bSaveEndpoint -eq $true )
+    if ( $script:bSaveEndpoint -eq $true )
         {
         $sSitename = Get-UI_Property -Form $oMainForm -Control "SiteNameCombo" -Property "SelectedItem"
         $sEndpoint = Get-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text"
         $oJSONcfg.tunnelAdresses | Add-Member -NotePropertyName $sSitename -NotePropertyValue $sEndpoint
-        #$global:oJSONcfg.tunnelAdresses += $aValue
+        #$script:oJSONcfg.tunnelAdresses += $aValue
         $i++
         }
 
@@ -425,30 +419,41 @@ function Event_Save_NewPeer
     $sDNS = Get-UI_Property -Form $oMainForm -Control "NewPeerDNSText" -Property "Text"
     $oJSONcfg.peers | Add-Member -NotePropertyName $sPeerName -NotePropertyValue @{PrivateKey=$sPrivKey;PublicKey=$sPubKey;DNS=$sDNS}
     # save and reload JSON config file
-    $oJSONOut = $global:oJSONcfg | ConvertTo-Json -Depth 99 | Out-File -FilePath "$sScriptPath.cfg.json"
-    $global:oJSONcfg = Get-Content -Raw -Path "$sScriptPath.cfg.json" | ConvertFrom-Json
+    $oJSONOut = $script:oJSONcfg | ConvertTo-Json -Depth 99 | Out-File -FilePath "$sScriptPath.cfg.json"
+    $script:oJSONcfg = Get-Content -Raw -Path "$sScriptPath.cfg.json" | ConvertFrom-Json
     $oJSONOut = $null
 
 
     # export config file for peer
-    "[Interface]" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf"
-    "PrivateKey = $sPrivKey" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "Address = $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "DNS = $(Get-UI_Property -Form $oMainForm -Control "NewPeerDNSText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "[Peer]" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "PublicKey = $sPubKey" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "AllowedIPs = 0.0.0.0/0" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
+    "[Interface]" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf"
+    "PrivateKey = $sPrivKey" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "Address = $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "DNS = $(Get-UI_Property -Form $oMainForm -Control "NewPeerDNSText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "[Peer]" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "PublicKey = $sPubKey" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "AllowedIPs = 0.0.0.0/0" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
     $sEndpoint = "$(Get-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text"):$(Get-UI_Property -Form $oMainForm -Control "NewEndPointPortText" -Property "Text")"
-    "Endpoint = $sEndpoint" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
+    "Endpoint = $sEndpoint" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
 
     # create new entry on Controller
     # - construct JSON for POST
-    $sJSONnewPeer = '{"name": "' + $sPeerName + '", "status": true, "interfaceId": "' + $global:oVPN.id + '", '
+    $sJSONnewPeer = '{"name": "' + $sPeerName + '", "status": true, "interfaceId": "' + $script:oVPN.id + '", '
     $sJSONnewPeer += '"publicKey": "' + $sPubKey + '", '#"endPoint": "", "endPointPort": 0, '
     $sJSONnewPeer += '"allowAddress": ["' + $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text") + '"], "keepAlive": 25, "comment":"Created by WireGuard Peer Creator" }'
     # - create new entry
     $oResp = fCtrlSetNewPeer $sServer $sOmadacId $sAccessToken $sSiteID $sJSONnewPeer
+
+
+<#    # - construct JSON for POST
+    $sVPNname = Get-UI_Property -Form $oMainForm -Control "VPNNameCombo" -Property "SelectedItem"
+    $sJSONnewPeer = '{"name":"' + $sVPNname + '", "vnType":4, '
+    $sJSONnewPeer += '"peers":{"name": "' + $sPeerName + '", "status": true,  '
+    $sJSONnewPeer += '"publicKey": "' + $sPubKey + '", '#"endPoint": "", "endPointPort": 0, '
+    $sJSONnewPeer += '"allowAddress": ["' + $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text") + '"], "keepAlive": 25, "comment":"Created by WireGuard Peer Creator" }}'
+    # - create new entry
+    $oResp = fCtrlSetNewPeer2 $sServer $sOmadacId $sAccessToken $sSiteID $script:oVPN.id $sJSONnewPeer
+#>
 
     # disable new peer detail box
     $bRet = Set-UI_Property -Form $oMainForm -Control "NewPeerBox" -Property "Visible" -Value $false
@@ -460,17 +465,17 @@ function Event_Export_Peer
 {
     # export config file for peer
     $sPeerName = Get-UI_Property -Form $oMainForm -Control "PeerCombo" -Property "SelectedItem"
-    "[Interface]" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf"
-    "PrivateKey = $(Get-UI_Property -Form $oMainForm -Control "PeerPrivKeyText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "Address = $(Get-UI_Property -Form $oMainForm -Control "PeerIPText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "DNS = $(Get-UI_Property -Form $oMainForm -Control "PeerDNSText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "[Peer]" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "PublicKey = $(Get-UI_Property -Form $oMainForm -Control "PeerPubKeyText" -Property "Text")" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
-    "AllowedIPs = 0.0.0.0/0" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
+    "[Interface]" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf"
+    "PrivateKey = $(Get-UI_Property -Form $oMainForm -Control "PeerPrivKeyText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "Address = $(Get-UI_Property -Form $oMainForm -Control "PeerIPText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "DNS = $(Get-UI_Property -Form $oMainForm -Control "PeerDNSText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "[Peer]" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "PublicKey = $(Get-UI_Property -Form $oMainForm -Control "PeerPubKeyText" -Property "Text")" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
+    "AllowedIPs = 0.0.0.0/0" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
     $sSitename = Get-UI_Property -Form $oMainForm -Control "SiteNameCombo" -Property "SelectedItem"
     $sEndpoint = $sEndpoint = "$($oJSONcfg.tunnelAdresses.$sSitename):$($oVPN.servicePort)"
-    "Endpoint = $sEndpoint" | Out-File -FilePath "$($global:sExportPath)\$sPeerName.conf" -Append
+    "Endpoint = $sEndpoint" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
 }
 
 function fDisplayMessageBox 
@@ -497,6 +502,24 @@ function About_Msg
 ###############################################################################################
 ###############################################################################################
 
+$script:sServer = "" 
+$script:sAccessToken = ""
+$script:srefreshToken = ""
+$script:sOmadacId = ""
+$script:sClientID = "" 
+$script:sClientSecret = "" 
+$script:oSites = [pscustomobject]@{}
+$script:sSiteID = ""
+$script:oVPNs = [pscustomobject]@{}
+$script:oVPN = [pscustomobject]@{}
+$script:sVPNID = ""
+$script:oPeers = [pscustomobject]@{}
+$script:sPeerID = ""
+$script:sNextIP = ""
+$script:sExportPath = ""
+$script:bSaveEndpoint = $false
+$script:Endpoint = ""
+
 
     # construct path bases based on directory from where the script is located
     # get the current path... 
@@ -511,7 +534,7 @@ function About_Msg
     # ...and read the Form and Logic definitions
     $oJSONforms = Get-Content -Raw -Path "$sScriptPath.forms.json" | ConvertFrom-Json
     $oJSONcfg = Get-Content -Raw -Path "$sScriptPath.cfg.json" | ConvertFrom-Json
-    $global:sExportPath = $ExecutionContext.InvokeCommand.ExpandString("$($oJSONcfg.exportPath)")
+    $script:sExportPath = $ExecutionContext.InvokeCommand.ExpandString("$($oJSONcfg.exportPath)")
 
     # Build the Form Objects from the JSON definition file
     $oForms = UI_Build_Forms -Definition $oJSONforms
