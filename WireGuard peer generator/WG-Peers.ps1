@@ -402,6 +402,8 @@ function Event_Save_NewPeer
         }
 
 
+
+
     # if needed add site FQDN
     if ( $script:bSaveEndpoint -eq $true )
         {
@@ -418,6 +420,21 @@ function Event_Save_NewPeer
     $sPubKey = Get-UI_Property -Form $oMainForm -Control "NewPeerPubKeyText" -Property "Text"
     $sDNS = Get-UI_Property -Form $oMainForm -Control "NewPeerDNSText" -Property "Text"
     $oJSONcfg.peers | Add-Member -NotePropertyName $sPeerName -NotePropertyValue @{PrivateKey=$sPrivKey;PublicKey=$sPubKey;DNS=$sDNS}
+
+
+    # create new entry on Controller
+    # - construct JSON for POST
+    $sJSONnewPeer = '{"name": "' + $sPeerName + '", "status": true, "interfaceId": "' + $script:oVPN.id + '", '
+    $sJSONnewPeer += '"publicKey": "' + $sPubKey + '", '#"endPoint": "", "endPointPort": 0, '
+    $sJSONnewPeer += '"allowAddress": ["' + $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text") + '"], "keepAlive": 25, "comment":"Created by WireGuard Peer Creator" }'
+    # - create new entry
+    $oResp = fCtrlSetNewPeer $sServer $sOmadacId $sAccessToken $sSiteID $sJSONnewPeer
+
+    if ( $oResp.errorCode -ne 0 )   { fDisplayMessageBox "New Peer EndPoint" "ERROR: $($oResp.msg)" ; return }
+    else                            { fDisplayMessageBox "New Peer EndPoint" "$($oResp.msg)" }
+
+
+
     # save and reload JSON config file
     $oJSONOut = $script:oJSONcfg | ConvertTo-Json -Depth 99 | Out-File -FilePath "$sScriptPath.cfg.json"
     $script:oJSONcfg = Get-Content -Raw -Path "$sScriptPath.cfg.json" | ConvertFrom-Json
@@ -435,15 +452,6 @@ function Event_Save_NewPeer
     "AllowedIPs = 0.0.0.0/0" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
     $sEndpoint = "$(Get-UI_Property -Form $oMainForm -Control "NewEndPointText" -Property "Text"):$(Get-UI_Property -Form $oMainForm -Control "NewEndPointPortText" -Property "Text")"
     "Endpoint = $sEndpoint" | Out-File -FilePath "$($script:sExportPath)\$sPeerName.conf" -Append
-
-    # create new entry on Controller
-    # - construct JSON for POST
-    $sJSONnewPeer = '{"name": "' + $sPeerName + '", "status": true, "interfaceId": "' + $script:oVPN.id + '", '
-    $sJSONnewPeer += '"publicKey": "' + $sPubKey + '", '#"endPoint": "", "endPointPort": 0, '
-    $sJSONnewPeer += '"allowAddress": ["' + $(Get-UI_Property -Form $oMainForm -Control "NewPeerIPText" -Property "Text") + '"], "keepAlive": 25, "comment":"Created by WireGuard Peer Creator" }'
-    # - create new entry
-    $oResp = fCtrlSetNewPeer $sServer $sOmadacId $sAccessToken $sSiteID $sJSONnewPeer
-
 
 <#    # - construct JSON for POST
     $sVPNname = Get-UI_Property -Form $oMainForm -Control "VPNNameCombo" -Property "SelectedItem"
@@ -485,7 +493,7 @@ param ( $sCaption, $sText )
 }
 
 function About_Msg 
-{ fDisplayMessageBox "About Peer Creator" "Version 0.1.0`r`n`n(c)2026 n-cs.eu" }
+{ fDisplayMessageBox "About Peer Creator" "Version 0.1.1`r`n`n(c)2026 n-cs.eu" }
 
 
 
